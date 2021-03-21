@@ -139,7 +139,7 @@ void print_mtx(vector<vector<int> > m){
 
 void print_diag(vector<vector<int> > m, int dim){
     for(int i = 0; i < dim; ++i){
-        cout << i << " " << m[i][i] << endl;
+        cout << m[i][i] << endl;
     }
 }
 
@@ -271,7 +271,7 @@ int main(int argc, char *argv[]){
     
 
     // task 3: flag is the probability
-    if (flag == 2){
+    if (flag == 3){
         int vertices = 1024;
         cout << "type value of p: " << endl;
         double p;
