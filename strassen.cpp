@@ -366,19 +366,30 @@ int main(int argc, char *argv[]){
 
                 }       
             }
+            int sum = 0;
+            int sum2 = 0;
+            int trials = 10;
+            vector<chrono::milliseconds> results();
+            for (int i = 0; i < trials; i++){
+                 auto start = chrono::high_resolution_clock::now(); 
+                strassen_multiply(m, n, elem);
+                //print_mtx(strassen_multiply(m, n, thresh));
+                auto stop = chrono::high_resolution_clock::now(); 
+                auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start); 
+                sum += duration.count();
 
-            auto start = chrono::high_resolution_clock::now(); 
-            strassen_multiply(m, n, elem);
-            //print_mtx(strassen_multiply(m, n, thresh));
-            auto stop = chrono::high_resolution_clock::now(); 
-            auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start); 
-            cout << elem << " DURATION for strassen: " << duration.count() << " ms" << endl;
+                auto start2 = chrono::high_resolution_clock::now(); 
+                matrix_multiply(m, n);
+                auto stop2 = chrono::high_resolution_clock::now(); 
+                auto duration2 = chrono::duration_cast<chrono::milliseconds>(stop2 - start2); 
+                sum2 += duration2.count();
+            }
+            sum /= trials;
+            sum2 /= trials;
 
-            auto start2 = chrono::high_resolution_clock::now(); 
-            matrix_multiply(m, n);
-            auto stop2 = chrono::high_resolution_clock::now(); 
-            auto duration2 = chrono::duration_cast<chrono::milliseconds>(stop2 - start2); 
-            cout << elem << " DURATION for conventional: " << duration2.count() << " ms" << endl;
+            cout << elem << " AVG DURATION for strassen: " << sum << " ms" << endl;
+
+            cout << elem << " AVG DURATION for conventional: " << sum2 << " ms" << endl;
         }
     }
     else if (flag == 0){
