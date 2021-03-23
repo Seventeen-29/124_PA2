@@ -6,6 +6,10 @@
         "filesystem": "cpp",
         "stdexcept": "cpp",
         "string": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "__bit_reference": "cpp",
+        "algorithm": "cpp",
+        "bitset": "cpp",
+        "unordered_map": "cpp"
     }
 }

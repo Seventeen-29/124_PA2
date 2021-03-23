@@ -189,32 +189,28 @@ vector<vector<int> > join(vector<vector<int> > const &topLeft, vector<vector<int
         return out;
     }
 
-vector<vector<int> > pad(vector<vector<int> > const &m){
-    int extraZeros = ((int) pow(2, ceil(log2(m.size())))) - m.size();
-    vector<vector<int> > out;
-    for(int row = 0; row < m.size(); row++){
-        vector<int> tempRow;
-        for(int i = 0; i < m.size(); i++){
-            tempRow.push_back(m[row][i]);
-        }
-        for(int i = 0; i < extraZeros; i++){
-            tempRow.push_back(0);
-        }
-        out.push_back(tempRow);
+void pad(vector<vector<int> > &m){
+    vector<int> newRow;
+    for (int i = 0; i < m.size(); i++){
+        m[i].push_back(0);
+        newRow.push_back(0);
     }
-    for(int i = 0; i < extraZeros; i++){
-        out.push_back(vector<int> (m.size() + extraZeros, 0));
-    }
-    return out;
+    newRow.push_back(0);
+    m.push_back(newRow);
 }
 
-vector<vector<int> > strassen_multiply(vector<vector<int> > const &m, vector<vector<int> > const &n, int thresh){
+vector<vector<int> > strassen_multiply(vector<vector<int> > &m, vector<vector<int> > &n, int thresh){
     if(m.size() < thresh){
         
         return matrix_multiply(m, n);
         //conventional
     }
     else{
+        if (m.size() % 2 != 0)
+            pad(m);
+        if (n.size() % 2 != 0)
+            pad(n);
+        
         vector<vector<int> > a = top_left(m);
         vector<vector<int> > b = top_right(m);
         vector<vector<int> > c = bottom_left(m);
@@ -225,14 +221,26 @@ vector<vector<int> > strassen_multiply(vector<vector<int> > const &m, vector<vec
         vector<vector<int> > h = bottom_right(n);
 
        // print_mtx(add(a, b));
+       vector<vector<int> > sub_fh = sub(f, h);
+       vector<vector<int> > add_ab = add(a, b);
+       vector<vector<int> > add_cd = add(c, d);
+       vector<vector<int> > sub_ge = sub(g, e);
+       vector<vector<int> > add_ad = add(a, d);
+       vector<vector<int> > add_eh = add(e, h);
+       vector<vector<int> > sub_bd = sub(b, d);
+       vector<vector<int> > add_gh = add(g, h);
+       vector<vector<int> > sub_ac = sub(a, c);
+       vector<vector<int> > add_ef = add(e, f);
 
-        vector<vector<int> > p1 = strassen_multiply(a, sub(f, h), thresh);
-        vector<vector<int> > p2 = strassen_multiply(add(a, b), h, thresh);
-        vector<vector<int> > p3 = strassen_multiply(add(c, d), e, thresh);
-        vector<vector<int> > p4 = strassen_multiply(d, sub(g, e), thresh);
-        vector<vector<int> > p5 = strassen_multiply(add(a, d), add(e, h), thresh);
-        vector<vector<int> > p6 = strassen_multiply(sub(b, d), add(g, h), thresh);
-        vector<vector<int> > p7 = strassen_multiply(sub(a, c), add(e, f), thresh);
+
+
+        vector<vector<int> > p1 = strassen_multiply(a, sub_fh, thresh);
+        vector<vector<int> > p2 = strassen_multiply(add_ab, h, thresh);
+        vector<vector<int> > p3 = strassen_multiply(add_cd, e, thresh);
+        vector<vector<int> > p4 = strassen_multiply(d, sub_ge, thresh);
+        vector<vector<int> > p5 = strassen_multiply(add_ad, add_eh, thresh);
+        vector<vector<int> > p6 = strassen_multiply(sub_bd, add_gh, thresh);
+        vector<vector<int> > p7 = strassen_multiply(sub_ac, add_ef, thresh);
         
         vector<vector<int> > topLeft = add(sub(add(p5, p4), p2),p6);
         vector<vector<int> > topRight = add(p1, p2);
@@ -270,7 +278,7 @@ int main(int argc, char *argv[]){
         genRandMats(0, 2, dim, fileName.c_str()); // generates random ints from 0 to 2 (inclusive)
     
 
-    // task 3: flag is the probability
+    // task 3: vertices
     if (flag == 3){
         int vertices = 1024;
         cout << "type value of p: " << endl;
@@ -288,7 +296,8 @@ int main(int argc, char *argv[]){
             }
         }
         //print_mtx(A);
-        vector<vector<int> > res = strassen_multiply(strassen_multiply(A, A, 512), A, 512);
+        vector<vector<int> > a_squared = strassen_multiply(A, A, 512);
+        vector<vector<int> > res = strassen_multiply(a_squared, A, 512);
         int sum = 0;
         for (int i = 0; i < res.size(); i++){
             sum += res[i][i];
@@ -332,18 +341,31 @@ int main(int argc, char *argv[]){
         vector<int> thresh;
         //thresh.push_back(4);
         //thresh.push_back(8);
-        //thresh.push_back(16);
-        //thresh.push_back(32);
-        thresh.push_back(64);
-        thresh.push_back(128);
-        thresh.push_back(256);
-        thresh.push_back(512);
-        thresh.push_back(1024);
-        thresh.push_back(1280);
+        thresh.push_back(250);
+        thresh.push_back(260);
+        thresh.push_back(270);
+        thresh.push_back(280);
+        thresh.push_back(290);
+        thresh.push_back(300);
         //thresh = { 256, 512, 768, 896, 1024, 1152, 1280, 1536, 2048 };
 
         for (int elem : thresh){
             cout << elem << endl;
+            genRandMats(0, 2, elem + 1, fileName.c_str());
+            for (int i = 0; i < dim; i++){
+                for (int j = 0; j < dim; j++){
+                    file >> curr;
+                    m[i][j] = curr;
+                }
+            }
+
+            for (int i = 0; i < dim; i++){
+                for (int j = 0; j < dim; j++){
+                    file >> curr;
+                    n[i][j] = curr;
+
+                }       
+            }
 
             auto start = chrono::high_resolution_clock::now(); 
             strassen_multiply(m, n, elem);
@@ -351,6 +373,12 @@ int main(int argc, char *argv[]){
             auto stop = chrono::high_resolution_clock::now(); 
             auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start); 
             cout << elem << " DURATION for strassen: " << duration.count() << " ms" << endl;
+
+            auto start2 = chrono::high_resolution_clock::now(); 
+            matrix_multiply(m, n);
+            auto stop2 = chrono::high_resolution_clock::now(); 
+            auto duration2 = chrono::duration_cast<chrono::milliseconds>(stop2 - start2); 
+            cout << elem << " DURATION for conventional: " << duration2.count() << " ms" << endl;
         }
     }
     else if (flag == 0){
