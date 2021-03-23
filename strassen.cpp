@@ -60,7 +60,7 @@ void genRandMats(int low, int high, int n, string fileName){
 //    NOTE: assumes `a`, `b`, and `c` are square matrices with the same dimensions.
 //    Computes the matrix product `a * b` and stores it in `c` through the conventional method.
 //    Inspired by Eddie Kohler's Network 8 Lecture from CS 61
-vector<vector<int> > matrix_multiply(vector<vector<int> > &a, vector<vector<int> > &b) {
+vector<vector<int> > matrix_multiply(vector<vector<int> > const &a, vector<vector<int> > const &b) {
 
     int n = a.size();
 
@@ -80,7 +80,7 @@ vector<vector<int> > matrix_multiply(vector<vector<int> > &a, vector<vector<int>
     return c;
 }
 
-vector<vector<int> > top_left(vector<vector<int> > m){
+vector<vector<int> > top_left(vector<vector<int> > const &m){
     vector<vector<int> > out;
     for(int row = 0; row < m.size() / 2; row++){
         vector<int> temp;
@@ -92,7 +92,7 @@ vector<vector<int> > top_left(vector<vector<int> > m){
     return out;
 }
 
-vector<vector<int> > bottom_left(vector<vector<int> > m){
+vector<vector<int> > bottom_left(vector<vector<int> > const &m){
     vector<vector<int> > out;
     for(int row = m.size() / 2; row < m.size(); row++){
         vector<int> temp;
@@ -104,7 +104,7 @@ vector<vector<int> > bottom_left(vector<vector<int> > m){
     return out;
 }
 
-vector<vector<int> > top_right(vector<vector<int> > m){
+vector<vector<int> > top_right(vector<vector<int> > const &m){
     vector<vector<int> > out;
     for(int row = 0; row < m.size() / 2; row++){
         vector<int> temp;
@@ -116,7 +116,7 @@ vector<vector<int> > top_right(vector<vector<int> > m){
     return out;
 }
 
-vector<vector<int> > bottom_right(vector<vector<int> > m){
+vector<vector<int> > bottom_right(vector<vector<int> > const &m){
     vector<vector<int> > out;
     for(int row = m.size() / 2; row < m.size(); row++){
         vector<int> temp;
@@ -128,7 +128,7 @@ vector<vector<int> > bottom_right(vector<vector<int> > m){
     return out;
 }
 
-void print_mtx(vector<vector<int> > m){
+void print_mtx(vector<vector<int> > const &m){
     for(vector<int> row : m){
         for(int col : row){
             cout << col << " ";
@@ -137,13 +137,13 @@ void print_mtx(vector<vector<int> > m){
     }
 }
 
-void print_diag(vector<vector<int> > m, int dim){
+void print_diag(vector<vector<int> > const &m, int dim){
     for(int i = 0; i < dim; ++i){
         cout << m[i][i] << endl;
     }
 }
 
-vector<vector<int> > add(vector<vector<int> > m, vector<vector<int> > n){
+vector<vector<int> > add(vector<vector<int> > const &m, vector<vector<int> > const &n){
     vector<vector<int> > out;
     for(int row = 0; row < m.size(); row++){
         vector<int> temp;
@@ -155,7 +155,7 @@ vector<vector<int> > add(vector<vector<int> > m, vector<vector<int> > n){
     return out;
 }
 
-vector<vector<int> > sub(vector<vector<int> > m, vector<vector<int> > n){
+vector<vector<int> > sub(vector<vector<int> > const &m, vector<vector<int> > const &n){
     vector<vector<int> > out;
     for(int row = 0; row < m.size(); row++){
         vector<int> temp;
@@ -167,8 +167,8 @@ vector<vector<int> > sub(vector<vector<int> > m, vector<vector<int> > n){
     return out;
 }
 
-vector<vector<int> > join(vector<vector<int> > topLeft, vector<vector<int> > topRight,
-    vector<vector<int> > bottomLeft, vector<vector<int> > bottomRight){
+vector<vector<int> > join(vector<vector<int> > const &topLeft, vector<vector<int> > const &topRight,
+    vector<vector<int> > const &bottomLeft, vector<vector<int> > const &bottomRight){
         vector<vector<int> > out;
         for(int row = 0; row < topLeft.size(); row++){
             vector<int> tempRow(topLeft.size() * 2, 0);
@@ -189,7 +189,7 @@ vector<vector<int> > join(vector<vector<int> > topLeft, vector<vector<int> > top
         return out;
     }
 
-vector<vector<int> > pad(vector<vector<int> > m){
+vector<vector<int> > pad(vector<vector<int> > const &m){
     int extraZeros = ((int) pow(2, ceil(log2(m.size())))) - m.size();
     vector<vector<int> > out;
     for(int row = 0; row < m.size(); row++){
@@ -208,7 +208,7 @@ vector<vector<int> > pad(vector<vector<int> > m){
     return out;
 }
 
-vector<vector<int> > strassen_multiply(vector<vector<int> > m, vector<vector<int> > n, int thresh){
+vector<vector<int> > strassen_multiply(vector<vector<int> > const &m, vector<vector<int> > const &n, int thresh){
     if(m.size() < thresh){
         
         return matrix_multiply(m, n);
@@ -319,8 +319,8 @@ int main(int argc, char *argv[]){
         }
     }
     
-    m = pad(m);
-    n = pad(n);
+    //m = pad(m);
+    //n = pad(n);
     
     //cout << "Matrix 1: " << endl;
     //print_mtx(m);
@@ -330,18 +330,20 @@ int main(int argc, char *argv[]){
     // for testing optimal n_0
     if (flag == 1){
         vector<int> thresh;
+        //thresh.push_back(4);
+        //thresh.push_back(8);
+        //thresh.push_back(16);
+        //thresh.push_back(32);
+        thresh.push_back(64);
+        thresh.push_back(128);
         thresh.push_back(256);
         thresh.push_back(512);
-        thresh.push_back(768);
-        thresh.push_back(896);
         thresh.push_back(1024);
-        thresh.push_back(1152);
         thresh.push_back(1280);
-        thresh.push_back(1536);
-        thresh.push_back(2048);
         //thresh = { 256, 512, 768, 896, 1024, 1152, 1280, 1536, 2048 };
 
         for (int elem : thresh){
+            cout << elem << endl;
 
             auto start = chrono::high_resolution_clock::now(); 
             strassen_multiply(m, n, elem);
