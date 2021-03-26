@@ -253,7 +253,7 @@ int main(int argc, char *argv[]){
         cout << "N = EVEN" << endl;
         fstream file1;
         //change testing bounds for n here
-        for(int n = 20; n < 240; n += 2){
+        for(int n = 2; n < 70; n += 2){
             genRandMats(0, 2, n, fileName.c_str());
             file1.open(fileName.c_str());
             vector<vector<int> > mtx1(n, vector<int> (n, 0));
@@ -275,11 +275,11 @@ int main(int argc, char *argv[]){
 
             double sum = 0.0;
             double sum2 = 0.0;
-            int trials = 13;
+            int trials = 100;
 
             for (int i = 0; i < trials; i++){
                 auto start = chrono::high_resolution_clock::now(); 
-                strassen_multiply(mtx1, mtx2, (n/2 + 1));
+                strassen_multiply(mtx1, mtx2, n);
                 auto stop = chrono::high_resolution_clock::now(); 
                 auto duration = chrono::duration_cast<chrono::microseconds>(stop - start); 
                 sum += duration.count();
@@ -292,7 +292,7 @@ int main(int argc, char *argv[]){
             sum /= trials;
             sum2 /= trials;
 
-            cout << n/2 << " " << sum - sum2 << endl;
+            cout << n << "," << sum - sum2 << "," << endl;
         }
     }
 
@@ -300,7 +300,7 @@ int main(int argc, char *argv[]){
         cout << "N = ODD" << endl;;
         fstream file1;
         //change testing bounds for n here
-        for(int n = 21; n < 241; n += 2){
+        for(int n = 3; n < 70; n += 2){
             genRandMats(0, 2, n, fileName.c_str());
             file1.open(fileName.c_str());
             vector<vector<int> > mtx1(n, vector<int> (n, 0));
@@ -322,11 +322,11 @@ int main(int argc, char *argv[]){
 
             double sum = 0.0;
             double sum2 = 0.0;
-            int trials = 10;
+            int trials = 100;
 
             for (int i = 0; i < trials; i++){
                 auto start = chrono::high_resolution_clock::now(); 
-                strassen_multiply(mtx1, mtx2, (n+1)/2);
+                strassen_multiply(mtx1, mtx2, n);
                 auto stop = chrono::high_resolution_clock::now(); 
                 auto duration = chrono::duration_cast<chrono::microseconds>(stop - start); 
                 sum += duration.count();
@@ -339,7 +339,7 @@ int main(int argc, char *argv[]){
             sum /= trials;
             sum2 /= trials;
 
-            cout << (n+1)/2 << " " << sum - sum2 << endl;
+            cout << n << "," << sum - sum2 << "," << endl;
         }
     }
 
