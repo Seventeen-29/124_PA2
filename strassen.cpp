@@ -24,19 +24,11 @@ struct stra_mtx {
     int colStart;
     int colEnd;
 
-    stra_mtx(int a, int b, int c, int d){
-        rowStart = a;
-        rowEnd = b;
-        colStart = c;
-        colEnd = d;
-    }
-
-    int r_split(){
-        return rowStart + (rowEnd - rowStart) / 2;
-    }
-
-    int c_split(){
-        return colStart + (colEnd - colStart) / 2;
+    stra_mtx(int rS, int rE, int cS, int cE){
+        rowStart = rS;
+        rowEnd = rE;
+        colStart = cS;
+        colEnd = cE;
     }
 
     int size(){
@@ -46,7 +38,6 @@ struct stra_mtx {
 };
 
 void genRandMats(int low, int high, int n, string fileName){
-
     ofstream file(fileName.c_str());
     for (int i = 0; i < n * n * 2; ++i){
 
@@ -56,12 +47,7 @@ void genRandMats(int low, int high, int n, string fileName){
     file.close(); 
 }
 
-// matrix_multiply(c, a, b)
-//    NOTE: assumes `a`, `b`, and `c` are square matrices with the same dimensions.
-//    Computes the matrix product `a * b` and stores it in `c` through the conventional method.
-//    Inspired by Eddie Kohler's Network 8 Lecture from CS 61
 vector<vector<int> > matrix_multiply(vector<vector<int> > const &a, vector<vector<int> > const &b) {
-
     int n = a.size();
 
     vector<vector<int> > c(n , vector<int> (n, 0)); 
@@ -80,43 +66,11 @@ vector<vector<int> > matrix_multiply(vector<vector<int> > const &a, vector<vecto
     return c;
 }
 
-vector<vector<int> > top_left(vector<vector<int> > const &m){
-    vector<vector<int> > out;
-    for(int row = 0; row < m.size() / 2; row++){
-        vector<int> temp;
-        for(int col = 0; col < m.size() / 2; col++){
-            temp.push_back(m[row][col]);
-        }
-        out.push_back(temp);
-    }
-    return out;
+vector<vector<int> > top_left(vector<vector<int> > &m){
+    
 }
 
-vector<vector<int> > bottom_left(vector<vector<int> > const &m){
-    vector<vector<int> > out;
-    for(int row = m.size() / 2; row < m.size(); row++){
-        vector<int> temp;
-        for(int col = 0; col < m.size() / 2; col++){
-            temp.push_back(m[row][col]);
-        }
-        out.push_back(temp);
-    }
-    return out;
-}
-
-vector<vector<int> > top_right(vector<vector<int> > const &m){
-    vector<vector<int> > out;
-    for(int row = 0; row < m.size() / 2; row++){
-        vector<int> temp;
-        for(int col = m.size() / 2; col < m.size(); col++){
-            temp.push_back(m[row][col]);
-        }
-        out.push_back(temp);
-    }
-    return out;
-}
-
-vector<vector<int> > bottom_right(vector<vector<int> > const &m){
+vector<vector<int> > bottom_right(vector<vector<int> > &m){
     vector<vector<int> > out;
     for(int row = m.size() / 2; row < m.size(); row++){
         vector<int> temp;
@@ -143,93 +97,105 @@ void print_diag(vector<vector<int> > const &m, int dim){
     }
 }
 
-vector<vector<int> > add(vector<vector<int> > const &m, vector<vector<int> > const &n){
-    vector<vector<int> > out;
-    for(int row = 0; row < m.size(); row++){
-        vector<int> temp;
-        for(int col = 0; col < m.size(); col++){
-            temp.push_back(m[row][col] + n[row][col]);
+//performs m [m_ind] - n[n_ind] = res, all are square matrices of same size
+vector<vector<int> > sub_ind(vector<vector<int> > &m, vector<vector<int> > &n, stra_mtx m_ind, stra_mtx n_ind){
+    vector<vector<int> > res(m_ind.size(), vector<int> (m_ind.size(), 0));
+    for(int row = 0; row < m_ind.size(); row++){
+        for(int col = 0; col < m_ind.size(); col++){
+            res[row][col] = m[m_ind.rowStart + row][m_ind.colStart + col] -
+                            n[n_ind.rowStart + row][n_ind.colStart + col];
         }
-        out.push_back(temp);
     }
-    return out;
+    return res;
 }
 
-vector<vector<int> > sub(vector<vector<int> > const &m, vector<vector<int> > const &n){
-    vector<vector<int> > out;
-    for(int row = 0; row < m.size(); row++){
-        vector<int> temp;
-        for(int col = 0; col < m.size(); col++){
-            temp.push_back(m[row][col] - n[row][col]);
+//performs m [m_ind] + n[n_ind] = res, all are square matrices of same size
+vector<vector<int> > add_ind(vector<vector<int> > &m, vector<vector<int> > &n, stra_mtx m_ind, stra_mtx n_ind){
+    vector<vector<int> > res(m_ind.size(), vector<int> (m_ind.size(), 0));
+    for(int row = 0; row < m_ind.size(); row++){
+        for(int col = 0; col < m_ind.size(); col++){
+            res[row][col] = m[m_ind.rowStart + row][m_ind.colStart + col] +
+                            n[n_ind.rowStart + row][n_ind.colStart + col];
         }
-        out.push_back(temp);
     }
-    return out;
+    return res;
 }
 
-vector<vector<int> > join(vector<vector<int> > const &topLeft, vector<vector<int> > const &topRight,
-    vector<vector<int> > const &bottomLeft, vector<vector<int> > const &bottomRight){
-        vector<vector<int> > out;
-        for(int row = 0; row < topLeft.size(); row++){
-            vector<int> tempRow(topLeft.size() * 2, 0);
-            for(int col = 0; col < topLeft.size(); col++){
-                tempRow[col] = topLeft[row][col];
-                tempRow[col + topLeft.size()] = topRight[row][col];
-            }
-            out.push_back(tempRow);
+//adds n to m and stores result back in m
+void add_inplace(vector<vector<int> > &m, vector<vector<int> > &n){
+    for(int row = 0; row < m.size(); row++){
+        for(int col = 0; col < m.size(); col++){
+            m[row][col] += n[row][col];
         }
-        for(int row = 0; row < topLeft.size(); row++){
-            vector<int> tempRow(topLeft.size() * 2, 0);
-            for (int col = 0; col < bottomLeft.size(); col++){
-                tempRow[col] = bottomLeft[row][col];
-                tempRow[col + topLeft.size()] = bottomRight[row][col];
-            }
-            out.push_back(tempRow);
-        }
-        return out;
     }
+}
 
-void pad(vector<vector<int> > &m){
-    vector<int> newRow;
-    for (int i = 0; i < m.size(); i++){
-        m[i].push_back(0);
-        newRow.push_back(0);
+//subtracts n from m and stores result back in m
+void sub_inplace(vector<vector<int> > &m, vector<vector<int> > &n){
+    for(int row = 0; row < m.size(); row++){
+        for(int col = 0; col < m.size(); col++){
+            m[row][col] -= n[row][col];
+        }
     }
-    newRow.push_back(0);
-    m.push_back(newRow);
 }
 
 vector<vector<int> > strassen_multiply(vector<vector<int> > &m, vector<vector<int> > &n, int thresh){
     if(m.size() < thresh){
         return matrix_multiply(m, n);
-        //conventional
     }
     else{
-        pad(m);
-        pad(n);
-        
-        vector<vector<int> > a = top_left(m);
-        vector<vector<int> > b = top_right(m);
-        vector<vector<int> > c = bottom_left(m);
-        vector<vector<int> > d = bottom_right(m);
-        vector<vector<int> > e = top_left(n);
-        vector<vector<int> > f = top_right(n);
-        vector<vector<int> > g = bottom_left(n);
-        vector<vector<int> > h = bottom_right(n);
+        bool needsTrim = false;
+        if (m.size() % 2 == 1){
+            for(int i = 0; i < m.size(); i++){
+                m[i].push_back(0);
+            }
+            m.push_back(vector<int> (m.size() + 1, 0));
+            for(int i = 0; i < n.size(); i++){
+                n[i].push_back(0);
+            }   
+            n.push_back(vector<int> (n.size() + 1, 0));
+            needsTrim = true;
+        }
 
-       // print_mtx(add(a, b));
-       vector<vector<int> > sub_fh = sub(f, h);
-       vector<vector<int> > add_ab = add(a, b);
-       vector<vector<int> > add_cd = add(c, d);
-       vector<vector<int> > sub_ge = sub(g, e);
-       vector<vector<int> > add_ad = add(a, d);
-       vector<vector<int> > add_eh = add(e, h);
-       vector<vector<int> > sub_bd = sub(b, d);
-       vector<vector<int> > add_gh = add(g, h);
-       vector<vector<int> > sub_ac = sub(a, c);
-       vector<vector<int> > add_ef = add(e, f);
+        int mid = m.size() / 2;
+        int end = m.size();
 
+        stra_mtx tL = stra_mtx(0, mid, 0, mid);
+        stra_mtx tR = stra_mtx(0, mid, mid, end);
+        stra_mtx bL = stra_mtx(mid, end, 0, mid);
+        stra_mtx bR = stra_mtx(mid, end, mid, end);
 
+        vector<vector<int> > sub_fh = sub_ind(n, n, tR, bR);
+        vector<vector<int> > add_ab = add_ind(m, m, tL, tR);
+        vector<vector<int> > add_cd = add_ind(m, m, bL, bR);
+        vector<vector<int> > sub_ge = sub_ind(n, n, bL, tL);
+        vector<vector<int> > add_ad = add_ind(m, m, tL, bR);
+        vector<vector<int> > add_eh = add_ind(n, n, tL, bR);
+        vector<vector<int> > sub_bd = sub_ind(m, m, tR, bR);
+        vector<vector<int> > add_gh = add_ind(n, n, bL, bR);
+        vector<vector<int> > sub_ac = sub_ind(m, m, tL, bL);
+        vector<vector<int> > add_ef = add_ind(n, n, tL, tR);
+
+        vector<vector<int> > a, d, e, h;
+        for(int row = 0; row < m.size() / 2; row++){
+            vector<int> temp, temp2;
+            for(int col = 0; col < m.size() / 2; col++){
+                temp.push_back(m[row][col]);
+                temp2.push_back(n[row][col]);
+            }
+            a.push_back(temp);
+            e.push_back(temp2);
+        }
+
+        for(int row = m.size() / 2; row < m.size(); row++){
+            vector<int> temp, temp2;
+            for(int col = m.size() / 2; col < m.size(); col++){
+                temp.push_back(n[row][col]);
+                temp2.push_back(m[row][col]);
+            }
+            h.push_back(temp);
+            d.push_back(temp2);
+        }
 
         vector<vector<int> > p1 = strassen_multiply(a, sub_fh, thresh);
         vector<vector<int> > p2 = strassen_multiply(add_ab, h, thresh);
@@ -239,41 +205,101 @@ vector<vector<int> > strassen_multiply(vector<vector<int> > &m, vector<vector<in
         vector<vector<int> > p6 = strassen_multiply(sub_bd, add_gh, thresh);
         vector<vector<int> > p7 = strassen_multiply(sub_ac, add_ef, thresh);
         
-        vector<vector<int> > topLeft = add(sub(add(p5, p4), p2),p6);
-        vector<vector<int> > topRight = add(p1, p2);
-        vector<vector<int> > bottomLeft = add(p3, p4);
-        vector<vector<int> > bottomRight = sub(add(p5, p1), add(p3, p7));
+        //topLeft is p6
+        add_inplace(p6, p5);
+        add_inplace(p6, p4);
+        sub_inplace(p6, p2);
+        //bottomRight is p5
+        add_inplace(p5, p1);
+        sub_inplace(p5, p3);
+        sub_inplace(p5, p7);
+        //topRight is p1
+        add_inplace(p1, p2);
+        //bottomLeft is p3
+        add_inplace(p3, p4);
 
-        return join(topLeft, topRight, bottomLeft, bottomRight);
+        vector<vector<int> > result;
+        for(int row = 0; row < p6.size(); row++){
+            vector<int> tempRow(p6.size() * 2, 0);
+            for(int col = 0; col < p6.size(); col++){
+                tempRow[col] = p6[row][col];
+                tempRow[col + p6.size()] = p1[row][col];
+            }
+            if(needsTrim){
+                tempRow.pop_back();
+            }
+            result.push_back(tempRow);
+        }
+        for(int row = 0; row < p6.size(); row++){
+            vector<int> tempRow(p6.size() * 2, 0);
+            for (int col = 0; col < p3.size(); col++){
+                tempRow[col] = p3[row][col];
+                tempRow[col + p6.size()] = p5[row][col];
+            }
+            if(needsTrim){
+                tempRow.pop_back();
+            }
+            result.push_back(tempRow);
+        }
+        if(needsTrim){
+            result.pop_back();
+        }
 
-        /**
-        stra_mtx a = stra_mtx(m_ind.rowStart, m_ind.r_split(), m_ind.colStart, m_ind.c_split());
-        stra_mtx b = stra_mtx(m_ind.rowStart, m_ind.r_split(), m_ind.c_split(), m_ind.colEnd);
-        stra_mtx c = stra_mtx(m_ind.r_split(), m_ind.rowEnd, m_ind.colStart, m_ind.c_split());
-        stra_mtx d = stra_mtx(m_ind.r_split(), m_ind.rowEnd, m_ind.c_split(), m_ind.colEnd);
-        stra_mtx e = stra_mtx(n_ind.rowStart, n_ind.r_split(), n_ind.colStart, n_ind.c_split());
-        stra_mtx f = stra_mtx(n_ind.rowStart, n_ind.r_split(), n_ind.c_split(), n_ind.colEnd);
-        stra_mtx g = stra_mtx(n_ind.r_split(), n_ind.rowEnd, n_ind.colStart, n_ind.c_split());
-        stra_mtx h = stra_mtx(n_ind.r_split(), n_ind.rowEnd, n_ind.c_split(), n_ind.colEnd);
-        **/
+        return result;
     }
 
 }
 
-
 int main(int argc, char *argv[]){	
     srand((unsigned)time(NULL));
     srand48((unsigned)time(NULL));
+
     int flag = stoi(argv[1]);
     int dim = stoi(argv[2]);
     string fileName = argv[3];
 
-    //cout << "FLAG " << flag << endl;
+    fstream file; 
+    file.open(fileName.c_str()); 
 
-    // option to generate random matrices on the fly
+    if (flag == 4){
+        vector<vector<int> > mtx1 = 
+
+{{0,3,9,7,8,4,3,1,3,1,4,0,7},
+{6,6,0,2,6,1,9,6,5,7,7,1,7},
+{7,9,8,2,2,3,4,5,0,0,3,2,6},
+{3,9,6,5,4,1,7,6,1,9,6,1,4},
+{0,9,4,5,2,5,6,4,4,7,9,6,8},
+{8,1,0,9,6,5,1,1,5,5,9,3,0},
+{2,0,4,4,9,7,5,5,7,6,9,0,8},
+{0,0,5,9,4,2,3,7,5,7,1,6,0},
+{1,3,8,3,7,0,4,6,5,1,3,2,7},
+{5,8,7,0,9,1,3,5,4,4,5,9,0},
+{4,3,6,7,9,2,7,1,3,1,5,0,0},
+{6,2,5,0,7,3,3,8,3,5,7,9,3},
+{4,5,1,0,2,3,9,9,2,5,1,9,1}};
+
+        vector<vector<int> > mtx2 = 
+
+{{0,3,9,7,8,4,3,1,3,1,4,0,7},
+{6,6,0,2,6,1,9,6,5,7,7,1,7},
+{7,9,8,2,2,3,4,5,0,0,3,2,6},
+{3,9,6,5,4,1,7,6,1,9,6,1,4},
+{0,9,4,5,2,5,6,4,4,7,9,6,8},
+{8,1,0,9,6,5,1,1,5,5,9,3,0},
+{2,0,4,4,9,7,5,5,7,6,9,0,8},
+{0,0,5,9,4,2,3,7,5,7,1,6,0},
+{1,3,8,3,7,0,4,6,5,1,3,2,7},
+{5,8,7,0,9,1,3,5,4,4,5,9,0},
+{4,3,6,7,9,2,7,1,3,1,5,0,0},
+{6,2,5,0,7,3,3,8,3,5,7,9,3},
+{4,5,1,0,2,3,9,9,2,5,1,9,1}};
+
+        print_mtx(strassen_multiply(mtx1, mtx2, 2));
+
+    }
+
     if (flag == 1)
         genRandMats(0, 2, dim, fileName.c_str()); // generates random ints from 0 to 2 (inclusive)
-    
 
     // task 3: vertices
     if (flag == 3){
@@ -303,9 +329,7 @@ int main(int argc, char *argv[]){
         cout << "NUM TRIANGLES: " << (sum / 6) << endl;
         return 0;
     }
-    fstream file; 
-    file.open(fileName.c_str()); 
-
+    
     vector<vector<int> > m(dim , vector<int> (dim));
     vector<vector<int> > n(dim , vector<int> (dim));
     int curr;
@@ -316,7 +340,6 @@ int main(int argc, char *argv[]){
             m[i][j] = curr;
         }
     }
-
     for (int i = 0; i < dim; i++){
         for (int j = 0; j < dim; j++){
             file >> curr;
@@ -324,104 +347,63 @@ int main(int argc, char *argv[]){
 
         }
     }
-    
-    //m = pad(m);
-    //n = pad(n);
-    
-    //cout << "Matrix 1: " << endl;
-    //print_mtx(m);
-    //cout << "Matrix 2: " << endl; 
-    //print_mtx(n);
 
-    // for testing optimal n_0
     if (flag == 1){
-        vector<int> thresh;
-        //thresh.push_back(4);
-        //thresh.push_back(8);
-        thresh.push_back(250);
-        thresh.push_back(260);
-        thresh.push_back(270);
-        thresh.push_back(280);
-        thresh.push_back(290);
-        thresh.push_back(300);
-        //thresh = { 256, 512, 768, 896, 1024, 1152, 1280, 1536, 2048 };
+        fstream file1;
 
-        for (int elem : thresh){
-            cout << elem << endl;
-            genRandMats(0, 2, elem + 1, fileName.c_str());
-            for (int i = 0; i < dim; i++){
-                for (int j = 0; j < dim; j++){
-                    file >> curr;
-                    m[i][j] = curr;
+        int bound = 22;
+
+        for(int n = 40; n < 240; n += 2){
+            genRandMats(0, 9, n, fileName.c_str());
+            file1.open(fileName.c_str());
+            vector<vector<int> > mtx1(n, vector<int> (n, 0));
+            vector<vector<int> > mtx2(n, vector<int> (n, 0));
+            for (int i = 0; i < n; i++){
+                for (int j = 0; j < n; j++){
+                    file1 >> curr;
+                    mtx1[i][j] = curr;
                 }
             }
-
-            for (int i = 0; i < dim; i++){
-                for (int j = 0; j < dim; j++){
-                    file >> curr;
-                    n[i][j] = curr;
+            for (int i = 0; i < n; i++){
+                for (int j = 0; j < n; j++){
+                    file1 >> curr;
+                    mtx2[i][j] = curr;
 
                 }       
             }
-            int sum = 0;
-            int sum2 = 0;
-            int trials = 10;
-            vector<chrono::milliseconds> results();
+            file1.close();
+
+            double sum = 0.0;
+            double sum2 = 0.0;
+            int trials = 5;
+
             for (int i = 0; i < trials; i++){
-                 auto start = chrono::high_resolution_clock::now(); 
-                strassen_multiply(m, n, elem);
-                //print_mtx(strassen_multiply(m, n, thresh));
+                auto start = chrono::high_resolution_clock::now(); 
+                strassen_multiply(mtx1, mtx2, (n/2 + 1));
                 auto stop = chrono::high_resolution_clock::now(); 
-                auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start); 
+                auto duration = chrono::duration_cast<chrono::microseconds>(stop - start); 
                 sum += duration.count();
+                //cout << "CONVENTIONAL: " << duration2 << endl; 
 
                 auto start2 = chrono::high_resolution_clock::now(); 
-                matrix_multiply(m, n);
+                matrix_multiply(mtx1, mtx2);
                 auto stop2 = chrono::high_resolution_clock::now(); 
-                auto duration2 = chrono::duration_cast<chrono::milliseconds>(stop2 - start2); 
+                auto duration2 = chrono::duration_cast<chrono::microseconds>(stop2 - start2);
+                //cout << "CONVENTIONAL: " << duration2 << endl; 
                 sum2 += duration2.count();
             }
             sum /= trials;
             sum2 /= trials;
 
-            cout << elem << " AVG DURATION for strassen: " << sum << " ms" << endl;
+            //cout << (n/2 + 1) << " Total Strassen    : " << sum << " ms" << endl;
+            //cout << (n/2 + 1) << " Total Conventional: " << sum2 << " ms" << endl;
+            cout << "n = " << n << " " << sum - sum2 << endl;
 
-            cout << elem << " AVG DURATION for conventional: " << sum2 << " ms" << endl;
         }
     }
+
     else if (flag == 0){
         print_diag(strassen_multiply(m, n, 512), dim);
     }
-
-/**
-    auto start = chrono::high_resolution_clock::now(); 
-    strassen_multiply(m, n, thresh0);
-    //print_mtx(strassen_multiply(m, n, thresh));
-    auto stop = chrono::high_resolution_clock::now(); 
-	auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start); 
-    cout << "DURATION for strassen: " << duration.count() << " ms" << endl;
-
-    start = chrono::high_resolution_clock::now(); 
-    strassen_multiply(m, n, thresh1);
-    //print_mtx(strassen_multiply(m, n, thresh));
-    stop = chrono::high_resolution_clock::now(); 
-    duration = chrono::duration_cast<chrono::milliseconds>(stop - start); 
-    cout << "DURATION for strassen: " << duration.count() << " ms" << endl;
-
-    start = chrono::high_resolution_clock::now(); 
-    strassen_multiply(m, n, thresh2);
-    //print_mtx(strassen_multiply(m, n, thresh));
-    stop = chrono::high_resolution_clock::now(); 
-	duration = chrono::duration_cast<chrono::milliseconds>(stop - start); 
-    cout << "DURATION for strassen: " << duration.count() << " ms" << endl;
-
-    start = chrono::high_resolution_clock::now(); 
-    strassen_multiply(m, n, thresh3);
-    //print_mtx(strassen_multiply(m, n, thresh));
-    stop = chrono::high_resolution_clock::now(); 
-	duration = chrono::duration_cast<chrono::milliseconds>(stop - start); 
-    cout << "DURATION for strassen: " << duration.count() << " ms" << endl;
-
-    **/
 
 }
