@@ -255,7 +255,7 @@ int main(int argc, char *argv[]){
                 n[i][j] = curr;
         }
     }
-        print_diag(strassen_multiply(m, n, 5), dim);
+        print_diag(strassen_multiply(m, n, 100), dim);
     }
     
     if (flag == 1){
