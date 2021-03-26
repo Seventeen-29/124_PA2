@@ -50,36 +50,16 @@ void genRandMats(int low, int high, int n, string fileName){
 vector<vector<int> > matrix_multiply(vector<vector<int> > const &a, vector<vector<int> > const &b) {
     int n = a.size();
 
-    vector<vector<int> > c(n , vector<int> (n, 0)); 
+    vector<vector<int> > c(n , vector<int> (n, 0));
 
     for (size_t i = 0; i < n; ++i){
-        vector<int> currRowA = a[i];
         for (size_t k = 0; k < n; ++k){
-            vector<int> currRowB  = b[k];
-            double currElemA = currRowA[k];
             for (size_t j = 0; j < n; ++j){
-                c[i][j] += currElemA * currRowB[j];   
+                c[i][j] += a[i][k] * b[k][j]; 
             }
         }
     }
-
     return c;
-}
-
-vector<vector<int> > top_left(vector<vector<int> > &m){
-    
-}
-
-vector<vector<int> > bottom_right(vector<vector<int> > &m){
-    vector<vector<int> > out;
-    for(int row = m.size() / 2; row < m.size(); row++){
-        vector<int> temp;
-        for(int col = m.size() / 2; col < m.size(); col++){
-            temp.push_back(m[row][col]);
-        }
-        out.push_back(temp);
-    }
-    return out;
 }
 
 void print_mtx(vector<vector<int> > const &m){
@@ -139,6 +119,7 @@ void sub_inplace(vector<vector<int> > &m, vector<vector<int> > &n){
     }
 }
 
+//recursive strassen matrix mult algo
 vector<vector<int> > strassen_multiply(vector<vector<int> > &m, vector<vector<int> > &n, int thresh){
     if(m.size() < thresh){
         return matrix_multiply(m, n);
@@ -244,23 +225,158 @@ vector<vector<int> > strassen_multiply(vector<vector<int> > &m, vector<vector<in
         if(needsTrim){
             result.pop_back();
         }
-
         return result;
     }
-
 }
 
-int main(int argc, char *argv[]){	
+int main(int argc, char *argv[]){
     srand((unsigned)time(NULL));
     srand48((unsigned)time(NULL));
 
     int flag = stoi(argv[1]);
     int dim = stoi(argv[2]);
     string fileName = argv[3];
-
-    fstream file; 
+    fstream file;
     file.open(fileName.c_str()); 
+    int curr = 0;
+    
+    if (flag == 0){
+        vector<vector<int> > m(dim, vector<int> (dim, 0));
+        vector<vector<int> > n(dim, vector<int> (dim, 0));
+        for (int i = 0; i < dim; i++){
+            for (int j = 0; j < dim; j++){
+                file >> curr;
+                m[i][j] = curr;
+            }
+        }
+        for (int i = 0; i < dim; i++){
+            for (int j = 0; j < dim; j++){
+                file >> curr;
+                n[i][j] = curr;
+        }
+    }
+        print_diag(strassen_multiply(m, n, 5), dim);
+    }
+    
+    if (flag == 1){
+        fstream file1;
+        //change testing bounds for n here
+        for(int n = 40; n < 240; n += 2){
+            genRandMats(0, 2, n, fileName.c_str());
+            file1.open(fileName.c_str());
+            vector<vector<int> > mtx1(n, vector<int> (n, 0));
+            vector<vector<int> > mtx2(n, vector<int> (n, 0));
+            for (int i = 0; i < n; i++){
+                for (int j = 0; j < n; j++){
+                    file1 >> curr;
+                    mtx1[i][j] = curr;
+                }
+            }
+            for (int i = 0; i < n; i++){
+                for (int j = 0; j < n; j++){
+                    file1 >> curr;
+                    mtx2[i][j] = curr;
 
+                }       
+            }
+            file1.close();
+
+            double sum = 0.0;
+            double sum2 = 0.0;
+            int trials = 10;
+
+            for (int i = 0; i < trials; i++){
+                auto start = chrono::high_resolution_clock::now(); 
+                strassen_multiply(mtx1, mtx2, (n/2 + 1));
+                auto stop = chrono::high_resolution_clock::now(); 
+                auto duration = chrono::duration_cast<chrono::microseconds>(stop - start); 
+                sum += duration.count();
+                auto start2 = chrono::high_resolution_clock::now(); 
+                matrix_multiply(mtx1, mtx2);
+                auto stop2 = chrono::high_resolution_clock::now(); 
+                auto duration2 = chrono::duration_cast<chrono::microseconds>(stop2 - start2);
+                sum2 += duration2.count();
+            }
+            sum /= trials;
+            sum2 /= trials;
+
+            cout << "n = " << n << " " << sum - sum2 << endl;
+        }
+    }
+
+    if (flag == 2){
+        fstream file1;
+        //change testing bounds for n here
+        for(int n = 41; n < 241; n += 2){
+            genRandMats(0, 2, n, fileName.c_str());
+            file1.open(fileName.c_str());
+            vector<vector<int> > mtx1(n, vector<int> (n, 0));
+            vector<vector<int> > mtx2(n, vector<int> (n, 0));
+            for (int i = 0; i < n; i++){
+                for (int j = 0; j < n; j++){
+                    file1 >> curr;
+                    mtx1[i][j] = curr;
+                }
+            }
+            for (int i = 0; i < n; i++){
+                for (int j = 0; j < n; j++){
+                    file1 >> curr;
+                    mtx2[i][j] = curr;
+
+                }       
+            }
+            file1.close();
+
+            double sum = 0.0;
+            double sum2 = 0.0;
+            int trials = 10;
+
+            for (int i = 0; i < trials; i++){
+                auto start = chrono::high_resolution_clock::now(); 
+                strassen_multiply(mtx1, mtx2, (n+1)/2);
+                auto stop = chrono::high_resolution_clock::now(); 
+                auto duration = chrono::duration_cast<chrono::microseconds>(stop - start); 
+                sum += duration.count();
+                auto start2 = chrono::high_resolution_clock::now(); 
+                matrix_multiply(mtx1, mtx2);
+                auto stop2 = chrono::high_resolution_clock::now(); 
+                auto duration2 = chrono::duration_cast<chrono::microseconds>(stop2 - start2);
+                sum2 += duration2.count();
+            }
+            sum /= trials;
+            sum2 /= trials;
+
+            cout << "n = " << n << " " << sum - sum2 << endl;
+        }
+    }
+
+    if (flag == 3){
+        int vertices = 1024;
+        cout << "type value of p: " << endl;
+        double p;
+        cin >> p;
+        vector<vector<int> > A(vertices, vector<int> (vertices, 0));
+        for (int i = 0; i < vertices; i++)
+        {
+            for (int j = 0; j < i; j++)
+            {
+                if (drand48() < p){
+                    A[i][j] = 1;
+                    A[j][i] = 1;
+                }
+            }
+        }
+        vector<vector<int> > a_squared = strassen_multiply(A, A, 100);
+        vector<vector<int> > res = strassen_multiply(a_squared, A, 100);
+        int sum = 0;
+        for (int i = 0; i < res.size(); i++){
+            sum += res[i][i];
+        }
+        //print_diag(strassen_multiply(strassen_multiply(A, A, 512), A, 512));
+        cout << "NUM TRIANGLES: " << (sum / 6) << endl;
+        return 0;
+    }
+    
     if (flag == 4){
         vector<vector<int> > mtx1 = 
 
@@ -296,114 +412,6 @@ int main(int argc, char *argv[]){
 
         print_mtx(strassen_multiply(mtx1, mtx2, 2));
 
-    }
-
-    if (flag == 1)
-        genRandMats(0, 2, dim, fileName.c_str()); // generates random ints from 0 to 2 (inclusive)
-
-    // task 3: vertices
-    if (flag == 3){
-        int vertices = 1024;
-        cout << "type value of p: " << endl;
-        double p;
-        cin >> p;
-        vector<vector<int> > A(vertices, vector<int> (vertices, 0));
-        for (int i = 0; i < vertices; i++)
-        {
-            for (int j = 0; j < i; j++)
-            {
-                if (drand48() < p){
-                    A[i][j] = 1;
-                    A[j][i] = 1;
-                }
-            }
-        }
-        //print_mtx(A);
-        vector<vector<int> > a_squared = strassen_multiply(A, A, 512);
-        vector<vector<int> > res = strassen_multiply(a_squared, A, 512);
-        int sum = 0;
-        for (int i = 0; i < res.size(); i++){
-            sum += res[i][i];
-        }
-        //print_diag(strassen_multiply(strassen_multiply(A, A, 512), A, 512));
-        cout << "NUM TRIANGLES: " << (sum / 6) << endl;
-        return 0;
-    }
-    
-    vector<vector<int> > m(dim , vector<int> (dim));
-    vector<vector<int> > n(dim , vector<int> (dim));
-    int curr;
-    
-    for (int i = 0; i < dim; i++){
-        for (int j = 0; j < dim; j++){
-            file >> curr;
-            m[i][j] = curr;
-        }
-    }
-    for (int i = 0; i < dim; i++){
-        for (int j = 0; j < dim; j++){
-            file >> curr;
-            n[i][j] = curr;
-
-        }
-    }
-
-    if (flag == 1){
-        fstream file1;
-
-        int bound = 22;
-
-        for(int n = 40; n < 240; n += 2){
-            genRandMats(0, 9, n, fileName.c_str());
-            file1.open(fileName.c_str());
-            vector<vector<int> > mtx1(n, vector<int> (n, 0));
-            vector<vector<int> > mtx2(n, vector<int> (n, 0));
-            for (int i = 0; i < n; i++){
-                for (int j = 0; j < n; j++){
-                    file1 >> curr;
-                    mtx1[i][j] = curr;
-                }
-            }
-            for (int i = 0; i < n; i++){
-                for (int j = 0; j < n; j++){
-                    file1 >> curr;
-                    mtx2[i][j] = curr;
-
-                }       
-            }
-            file1.close();
-
-            double sum = 0.0;
-            double sum2 = 0.0;
-            int trials = 5;
-
-            for (int i = 0; i < trials; i++){
-                auto start = chrono::high_resolution_clock::now(); 
-                strassen_multiply(mtx1, mtx2, (n/2 + 1));
-                auto stop = chrono::high_resolution_clock::now(); 
-                auto duration = chrono::duration_cast<chrono::microseconds>(stop - start); 
-                sum += duration.count();
-                //cout << "CONVENTIONAL: " << duration2 << endl; 
-
-                auto start2 = chrono::high_resolution_clock::now(); 
-                matrix_multiply(mtx1, mtx2);
-                auto stop2 = chrono::high_resolution_clock::now(); 
-                auto duration2 = chrono::duration_cast<chrono::microseconds>(stop2 - start2);
-                //cout << "CONVENTIONAL: " << duration2 << endl; 
-                sum2 += duration2.count();
-            }
-            sum /= trials;
-            sum2 /= trials;
-
-            //cout << (n/2 + 1) << " Total Strassen    : " << sum << " ms" << endl;
-            //cout << (n/2 + 1) << " Total Conventional: " << sum2 << " ms" << endl;
-            cout << "n = " << n << " " << sum - sum2 << endl;
-
-        }
-    }
-
-    else if (flag == 0){
-        print_diag(strassen_multiply(m, n, 512), dim);
     }
 
 }
