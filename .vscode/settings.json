@@ -11,6 +11,7 @@
         "algorithm": "cpp",
         "bitset": "cpp",
         "unordered_map": "cpp",
-        "iosfwd": "cpp"
+        "iosfwd": "cpp",
+        "initializer_list": "cpp"
     }
 }

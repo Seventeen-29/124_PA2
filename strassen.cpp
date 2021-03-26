@@ -62,17 +62,8 @@ vector<vector<int> > matrix_multiply(vector<vector<int> > const &a, vector<vecto
     return c;
 }
 
-void print_mtx(vector<vector<int> > const &m){
-    for(vector<int> row : m){
-        for(int col : row){
-            cout << col << " ";
-        }
-        cout << endl;
-    }
-}
-
-void print_diag(vector<vector<int> > const &m, int dim){
-    for(int i = 0; i < dim; ++i){
+void print_diag(vector<vector<int> > const &m){
+    for(int i = 0; i < m.size(); ++i){
         cout << m[i][i] << endl;
     }
 }
@@ -255,13 +246,14 @@ int main(int argc, char *argv[]){
                 n[i][j] = curr;
         }
     }
-        print_diag(strassen_multiply(m, n, 100), dim);
+        print_diag(strassen_multiply(m, n, 100));
     }
     
     if (flag == 1){
+        cout << "N = EVEN" << endl;
         fstream file1;
         //change testing bounds for n here
-        for(int n = 40; n < 240; n += 2){
+        for(int n = 20; n < 240; n += 2){
             genRandMats(0, 2, n, fileName.c_str());
             file1.open(fileName.c_str());
             vector<vector<int> > mtx1(n, vector<int> (n, 0));
@@ -283,7 +275,7 @@ int main(int argc, char *argv[]){
 
             double sum = 0.0;
             double sum2 = 0.0;
-            int trials = 10;
+            int trials = 13;
 
             for (int i = 0; i < trials; i++){
                 auto start = chrono::high_resolution_clock::now(); 
@@ -300,14 +292,15 @@ int main(int argc, char *argv[]){
             sum /= trials;
             sum2 /= trials;
 
-            cout << "n = " << n << " " << sum - sum2 << endl;
+            cout << n/2 << " " << sum - sum2 << endl;
         }
     }
 
     if (flag == 2){
+        cout << "N = ODD" << endl;;
         fstream file1;
         //change testing bounds for n here
-        for(int n = 41; n < 241; n += 2){
+        for(int n = 21; n < 241; n += 2){
             genRandMats(0, 2, n, fileName.c_str());
             file1.open(fileName.c_str());
             vector<vector<int> > mtx1(n, vector<int> (n, 0));
@@ -346,7 +339,7 @@ int main(int argc, char *argv[]){
             sum /= trials;
             sum2 /= trials;
 
-            cout << "n = " << n << " " << sum - sum2 << endl;
+            cout << (n+1)/2 << " " << sum - sum2 << endl;
         }
     }
 
@@ -375,43 +368,6 @@ int main(int argc, char *argv[]){
         //print_diag(strassen_multiply(strassen_multiply(A, A, 512), A, 512));
         cout << "NUM TRIANGLES: " << (sum / 6) << endl;
         return 0;
-    }
-    
-    if (flag == 4){
-        vector<vector<int> > mtx1 = 
-
-{{0,3,9,7,8,4,3,1,3,1,4,0,7},
-{6,6,0,2,6,1,9,6,5,7,7,1,7},
-{7,9,8,2,2,3,4,5,0,0,3,2,6},
-{3,9,6,5,4,1,7,6,1,9,6,1,4},
-{0,9,4,5,2,5,6,4,4,7,9,6,8},
-{8,1,0,9,6,5,1,1,5,5,9,3,0},
-{2,0,4,4,9,7,5,5,7,6,9,0,8},
-{0,0,5,9,4,2,3,7,5,7,1,6,0},
-{1,3,8,3,7,0,4,6,5,1,3,2,7},
-{5,8,7,0,9,1,3,5,4,4,5,9,0},
-{4,3,6,7,9,2,7,1,3,1,5,0,0},
-{6,2,5,0,7,3,3,8,3,5,7,9,3},
-{4,5,1,0,2,3,9,9,2,5,1,9,1}};
-
-        vector<vector<int> > mtx2 = 
-
-{{0,3,9,7,8,4,3,1,3,1,4,0,7},
-{6,6,0,2,6,1,9,6,5,7,7,1,7},
-{7,9,8,2,2,3,4,5,0,0,3,2,6},
-{3,9,6,5,4,1,7,6,1,9,6,1,4},
-{0,9,4,5,2,5,6,4,4,7,9,6,8},
-{8,1,0,9,6,5,1,1,5,5,9,3,0},
-{2,0,4,4,9,7,5,5,7,6,9,0,8},
-{0,0,5,9,4,2,3,7,5,7,1,6,0},
-{1,3,8,3,7,0,4,6,5,1,3,2,7},
-{5,8,7,0,9,1,3,5,4,4,5,9,0},
-{4,3,6,7,9,2,7,1,3,1,5,0,0},
-{6,2,5,0,7,3,3,8,3,5,7,9,3},
-{4,5,1,0,2,3,9,9,2,5,1,9,1}};
-
-        print_mtx(strassen_multiply(mtx1, mtx2, 2));
-
     }
 
 }
